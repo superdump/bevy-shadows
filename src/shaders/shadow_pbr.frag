@@ -65,6 +65,8 @@ layout(location = 2) in vec2 v_Uv;
 layout(location = 3) in vec4 v_WorldTangent;
 #endif
 
+layout(location = 4) in vec3 v_LightSpacePosition;
+
 layout(location = 0) out vec4 o_Target;
 
 layout(set = 0, binding = 0) uniform CameraViewProj {
@@ -445,8 +447,7 @@ void main() {
     for (int i = 0; i < int(NumLights.y) && i < MAX_DIRECTIONAL_LIGHTS; ++i) {
         ShadowDirectionalLight shadow_light = shadow_directional_lights[i];
 
-        vec4 p = shadow_light.viewProj * vec4(v_WorldPosition, 1.0);
-        vec2 uv = p.xy;
+        vec2 uv = v_LightSpacePosition.xy;
         uv.y *= -1.0;
         uv += 1.0;
         uv /= 2.0;
@@ -456,9 +457,10 @@ void main() {
             shadow_light.shadow_bias_min_max.y * (1.0 - dot(v_WorldNormal, DirectionalLights[i].direction.xyz)),
             shadow_light.shadow_bias_min_max.x
         );
+
         // Clamping the light space z to the shadow map range prevents objects further away than the far plane
         // from always being considered as occluded
-        if (clamp(p.z, 0.0, 1.0 + shadow_bias) - shadow_bias <= depth
+        if (clamp(v_LightSpacePosition.z, 0.0, 1.0 + shadow_bias) - shadow_bias <= depth
                 || any(lessThan(uv, vec2(0.0)))
                 || any(greaterThan(uv, vec2(1.0)))) {
             light_accum += dir_light(DirectionalLights[i], roughness, NdotV, N, V, R, F0, diffuseColor);
