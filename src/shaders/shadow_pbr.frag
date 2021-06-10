@@ -79,11 +79,7 @@ layout(std140, set = 1, binding = 0) uniform Lights {
     DirectionalLight DirectionalLights[MAX_DIRECTIONAL_LIGHTS];
 };
 
-layout(set = 1, binding = 1) uniform ShadowLights {
-    ShadowDirectionalLight shadow_directional_lights[MAX_DIRECTIONAL_LIGHTS];
-};
-
-layout(set = 1, binding = 2) uniform texture2DArray DirectionalLightTexture;
+layout(set = 1, binding = 2) uniform texture2D DirectionalLightTexture;
 layout(set = 1, binding = 3) uniform sampler DirectionalLightSampler;
 
 layout(set = 3, binding = 0) uniform StandardMaterial_base_color {
@@ -449,10 +445,7 @@ void main() {
         uv += 1.0;
         uv /= 2.0;
 
-        float depth = texture(
-            sampler2DArray(DirectionalLightTexture, DirectionalLightSampler), 
-            vec3(uv, shadow_light.textureIndex)
-        ).r;
+        float depth = texture(sampler2D(DirectionalLightTexture, DirectionalLightSampler), uv).r;
         float shadow_bias = max(0.00015 * (1.0 - dot(v_WorldNormal, DirectionalLights[i].direction.xyz)), 0.00001);
         if (p.z - shadow_bias <= depth || any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) {
             light_accum += dir_light(DirectionalLights[i], roughness, NdotV, N, V, R, F0, diffuseColor);
